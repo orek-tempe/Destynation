@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div class="wrap">
+<div class="wrap">\n  <header style="text-align:center;margin-bottom:12px;"><h1 style="margin:0;font-size:20px;color:#ffd54a;">ICARE - DESTYnation</h1></header>
   <div id="login-screen" class="card">
     <h2>Tebak Nama Indonesia</h2>
     <p>Masukkan nama (tanpa password) untuk mulai:</p>
@@ -26,8 +26,9 @@
       <div id="options"></div>
     </div>
     <div class="controls">
-      <button id="nextBtn" class="hidden">Pertanyaan Berikutnya</button>
+      <!-- auto-advance after answer -->
     </div>
+    <div id="combo" class="small"></div>
   </div>
 
   <div id="end-screen" class="card hidden">
