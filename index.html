@@ -1,26 +1,55 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Tebak Nama Indonesia</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tebak Nama Indonesia</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div class="container">
-    <h1>Game Tebak Nama Indonesia</h1>
-    <div id="score">Score: 0</div>
-    <div id="question-container">
-        <div id="question"></div>
-        <div id="options"></div>
+<div class="wrap">
+  <div id="login-screen" class="card">
+    <h2>Tebak Nama Indonesia</h2>
+    <p>Masukkan nama (tanpa password) untuk mulai:</p>
+    <input id="playerName" placeholder="Nama Anda" />
+    <button id="startBtn">Mulai</button>
+    <p class="muted">Leaderboard: 5 pemain terbaik (skor tertinggi, waktu tercepat)</p>
+  </div>
+
+  <div id="game-screen" class="card hidden">
+    <div class="top">
+      <div id="score">Score: 0</div>
+      <div id="timer">Waktu: 00:45</div>
     </div>
-    <button id="next-btn">Pertanyaan Berikutnya</button>
+    <div id="question-area">
+      <div id="question">--</div>
+      <div id="options"></div>
+    </div>
+    <div class="controls">
+      <button id="nextBtn" class="hidden">Pertanyaan Berikutnya</button>
+    </div>
+  </div>
+
+  <div id="end-screen" class="card hidden">
+    <h3>Permainan selesai</h3>
+    <p id="finalText"></p>
+    <button id="playAgain">Main Lagi</button>
+    <h4>Leaderboard</h4>
+    <ol id="leaderboard"></ol>
+  </div>
+
+  <audio id="sound-correct" src="benar.mp3"></audio>
+  <audio id="sound-wrong" src="salah.mp3"></audio>
 </div>
 
-<audio id="correct-sound" src="benar.mp3"></audio>
-<audio id="wrong-sound" src="salah.mp3"></audio>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-<script src="script.js"></script>
+<!-- Your Firebase configuration file (paste your config there) -->
+<script src="firebase-config.js"></script>
+
+<!-- Main logic (module) -->
+<script type="module" src="script.js"></script>
 </body>
 </html>
