@@ -13,5 +13,5 @@ button{padding:10px 14px; border-radius:8px; border:none; background:#ffd54a; co
 #options button{display:block; width:100%; text-align:left; padding:10px; margin:8px 0; border-radius:8px; background:rgba(255,255,255,0.08); color:#fff; border:none; cursor:pointer;}
 #timer{font-weight:700; color:#ffd54a;}
 .controls{margin-top:10px; text-align:center;}
-ol#leaderboard{padding-left:18px; color:#fff;}
+ol#localScores{padding-left:18px; color:#fff;}
 .small{font-size:13px; opacity:0.9;}

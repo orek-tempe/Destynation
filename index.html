@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Tebak Nama Indonesia</title>
+<title>Tebak Nama Indonesia (Local Score)</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
     <p>Masukkan nama (tanpa password) untuk mulai:</p>
     <input id="playerName" placeholder="Nama Anda" />
     <button id="startBtn">Mulai</button>
-    <p class="muted">Leaderboard: 5 pemain terbaik (skor tertinggi, waktu tercepat)</p>
+    <p class="muted">Skor disimpan secara lokal pada perangkat. Hanya Anda yang bisa melihat skor ini di perangkat ini.</p>
   </div>
 
   <div id="game-screen" class="card hidden">
@@ -34,22 +34,14 @@
     <h3>Permainan selesai</h3>
     <p id="finalText"></p>
     <button id="playAgain">Main Lagi</button>
-    <h4>Leaderboard</h4>
-    <ol id="leaderboard"></ol>
+    <h4>Riwayat Skor Anda (lokal)</h4>
+    <ol id="localScores"></ol>
   </div>
 
   <audio id="sound-correct" src="benar.mp3"></audio>
   <audio id="sound-wrong" src="salah.mp3"></audio>
 </div>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-<!-- Your Firebase configuration file (paste your config there) -->
-<script src="firebase-config.js"></script>
-
-<!-- Main logic (module) -->
-<script type="module" src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

@@ -1,18 +1,4 @@
 
-import { } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
-
-// The firebaseConfig variable MUST be defined in firebase-config.js before this script runs.
-// It should be the object provided by Firebase Console when you register a web app.
-
-if (typeof firebaseConfig === 'undefined') {
-  alert('firebase-config.js belum diisi. Buka firebase-config.js dan paste konfigurasi Firebase Anda terlebih dahulu.');
-  throw new Error('firebase-config missing');
-}
-
-// initialize
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
 const QUESTIONS = [
   {q:"Ibukota Indonesia?", options:["Jakarta","Surabaya","Bandung","Medan"], answer:0},
   {q:"Pulau terbesar di Indonesia?", options:["Sumatra","Jawa","Borneo","Sulawesi"], answer:2},
@@ -24,10 +10,10 @@ const QUESTIONS = [
   {q:"Pulau di ujung timur Indonesia?", options:["Bali","Sumba","Papua","Timor"], answer:2},
   {q:"Pahlawan wanita dari Aceh?", options:["Cut Nyak Dhien","Kartini","Martha Christina","Siti Hartinah"], answer:0},
   {q:"Buah tropis berkulit berduri?", options:["Durian","Nanas","Mangga","Salak"], answer:0},
-  // (Add questions up to 50 as needed)
+  // tambahkan hingga 50 pertanyaan sesuai kebutuhan
 ];
 
-// UI
+// UI elements
 const loginScreen = document.getElementById('login-screen');
 const gameScreen = document.getElementById('game-screen');
 const endScreen = document.getElementById('end-screen');
@@ -39,7 +25,7 @@ const questionEl = document.getElementById('question');
 const optionsEl = document.getElementById('options');
 const nextBtn = document.getElementById('nextBtn');
 const finalText = document.getElementById('finalText');
-const leaderboardOl = document.getElementById('leaderboard');
+const localScoresOl = document.getElementById('localScores');
 const playAgainBtn = document.getElementById('playAgain');
 const soundCorrect = document.getElementById('sound-correct');
 const soundWrong = document.getElementById('sound-wrong');
@@ -48,11 +34,11 @@ let playerName = '';
 let shuffled = [];
 let current = 0;
 let score = 0;
-let perQuestionTime = 45; // seconds
+let perQuestionTime = 45;
 let questionTimer = null;
 let remaining = perQuestionTime;
-let totalAnswerTime = 0; // sum of time taken to answer (for tie-breaker)
 let questionStartTs = 0;
+let totalAnswerTime = 0; // seconds total taken to answer
 
 function shuffle(a){ return a.slice().sort(()=>0.5 - Math.random()); }
 
@@ -63,15 +49,12 @@ startBtn.addEventListener('click', () => {
   beginGame();
 });
 
-playAgainBtn.addEventListener('click', () => {
-  location.reload();
-});
+playAgainBtn.addEventListener('click', ()=>{ location.reload(); });
 
 function beginGame(){
   loginScreen.classList.add('hidden');
   endScreen.classList.add('hidden');
   gameScreen.classList.remove('hidden');
-  // prepare questions
   shuffled = shuffle(QUESTIONS).slice(0,50);
   current = 0;
   score = 0;
@@ -81,7 +64,6 @@ function beginGame(){
 }
 
 function showQuestion(){
-  // reset
   nextBtn.classList.add('hidden');
   optionsEl.innerHTML = '';
   if(current >= shuffled.length){
@@ -90,30 +72,28 @@ function showQuestion(){
   }
   const q = shuffled[current];
   questionEl.textContent = `Pertanyaan ${current+1}: ${q.q}`;
-  q.options.forEach((opt, idx) => {
+  q.options.forEach((opt, idx)=>{
     const btn = document.createElement('button');
     btn.textContent = opt;
-    btn.onclick = () => { selectAnswer(idx); };
+    btn.onclick = ()=> selectAnswer(idx);
     optionsEl.appendChild(btn);
   });
-  // start per-question timer
   remaining = perQuestionTime;
   updateTimerDisplay();
   questionStartTs = Date.now();
   if(questionTimer) clearInterval(questionTimer);
-  questionTimer = setInterval(() => {
+  questionTimer = setInterval(()=>{
     remaining--;
     updateTimerDisplay();
     if(remaining <= 0){
       clearInterval(questionTimer);
-      // time up: count as wrong and move next
-      soundWrong.play().catch(()=>{});
-      // add full perQuestionTime to totalAnswerTime as penalty (optional choose to add perQuestionTime)
+      // time up -> wrong, move next but show next button
+      try{ soundWrong.play(); }catch(e){}
       totalAnswerTime += perQuestionTime;
-      Array.from(optionsEl.children).forEach(b => b.disabled = true);
+      Array.from(optionsEl.children).forEach(b=> b.disabled = true);
       nextBtn.classList.remove('hidden');
     }
-  }, 1000);
+  },1000);
 }
 
 function updateTimerDisplay(){
@@ -132,12 +112,11 @@ function selectAnswer(idx){
   if(idx === correct){
     score += 2;
     scoreEl.textContent = 'Score: ' + score;
-    soundCorrect.play().catch(()=>{});
+    try{ soundCorrect.play(); }catch(e){}
   } else {
-    soundWrong.play().catch(()=>{});
+    try{ soundWrong.play(); }catch(e){}
   }
-  // disable options
-  Array.from(optionsEl.children).forEach(b => b.disabled = true);
+  Array.from(optionsEl.children).forEach(b=> b.disabled = true);
   nextBtn.classList.remove('hidden');
 }
 
@@ -146,53 +125,42 @@ nextBtn.addEventListener('click', ()=>{
   showQuestion();
 });
 
-// finish
-async function finishGame(){
+function finishGame(){
   if(questionTimer) clearInterval(questionTimer);
   gameScreen.classList.add('hidden');
   endScreen.classList.remove('hidden');
   finalText.textContent = `Player: ${playerName} — Score: ${score} — Total waktu jawab: ${totalAnswerTime}s`;
-  // save to Firestore
-  try {
-    await db.collection('leaderboard').add({
-      name: playerName,
-      score: score,
-      time: totalAnswerTime,
-      ts: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  } catch (e){
-    console.error('Gagal simpan ke Firestore:', e);
-  }
-  // update leaderboard display
-  renderLeaderboard();
+  saveLocalScore(playerName, score, totalAnswerTime);
+  renderLocalScores(playerName);
 }
 
-async function renderLeaderboard(){
-  leaderboardOl.innerHTML = '<li class="small">Memuat...</li>';
-  try {
-    // order by score desc then time asc
-    const snapshot = await db.collection('leaderboard')
-      .orderBy('score','desc')
-      .orderBy('time','asc')
-      .limit(5)
-      .get();
-    leaderboardOl.innerHTML = '';
-    snapshot.forEach(doc => {
-      const d = doc.data();
-      const li = document.createElement('li');
-      li.textContent = `${d.name} — ${d.score} pts — ${d.time || 0}s`;
-      leaderboardOl.appendChild(li);
-    });
-  } catch (e){
-    console.error('Gagal ambil leaderboard:', e);
-    leaderboardOl.innerHTML = '<li class="small">Tidak dapat memuat leaderboard (cek konfigurasi Firebase/Firestore).</li>';
-  }
+function saveLocalScore(name, scoreVal, timeVal){
+  const key = 'tebaknama_scores_' + name;
+  let arr = JSON.parse(localStorage.getItem(key) || '[]');
+  arr.unshift({score: scoreVal, time: timeVal, ts: Date.now()});
+  // keep only latest 20 entries
+  arr = arr.slice(0,20);
+  localStorage.setItem(key, JSON.stringify(arr));
 }
 
-// on load, show any stored name
+function renderLocalScores(name){
+  const key = 'tebaknama_scores_' + name;
+  let arr = JSON.parse(localStorage.getItem(key) || '[]');
+  localScoresOl.innerHTML = '';
+  if(arr.length === 0){
+    localScoresOl.innerHTML = '<li class="small">Belum ada skor.</li>';
+    return;
+  }
+  arr.forEach(item=>{
+    const d = new Date(item.ts);
+    const li = document.createElement('li');
+    li.textContent = `${d.toLocaleString()} — ${item.score} pts — ${item.time}s`;
+    localScoresOl.appendChild(li);
+  });
+}
+
+// load stored name
 window.addEventListener('load', ()=>{
   const stored = localStorage.getItem('playerName');
   if(stored) playerNameInput.value = stored;
-  // show leaderboard on load too
-  renderLeaderboard();
 });
